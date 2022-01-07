@@ -1,14 +1,18 @@
+import sys
 from antlr4 import *
-from beatLexer import beatLexer
-from beatParser import beatParser
-from EvalVisitor import EvalVisitor
-from TreeVisitor import TreeVisitor
-input_stream = InputStream(input('? '))
-lexer = beatLexer(input_stream)
-token_stream = CommonTokenStream(lexer)
-parser = beatParser(token_stream)
-tree = parser.root() 
-#visitor = TreeVisitor()
-#visitor.visit(tree)
-visitor = EvalVisitor()
-visitor.visit(tree)
+from llullLexer import llullLexer
+from llullParser import llullParser
+from BeatVisitor import BeatVisitor
+
+def main(argv):    
+    file = open(argv[1])
+    input_stream = InputStream(file.read())
+    lexer = llullLexer(input_stream)
+    token_stream = CommonTokenStream(lexer)
+    parser = llullParser(token_stream)
+    tree = parser.root()
+    visitor = BeatVisitor()
+    visitor.visit(tree)
+
+if __name__ == '__main__':    
+    main(sys.argv)

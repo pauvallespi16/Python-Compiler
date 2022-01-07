@@ -7,6 +7,8 @@ else:
 
 memory = {}
 
+global_memory = {}
+
 functions = {}
 
 parameters = {}
@@ -16,7 +18,8 @@ aritmetics = {
     '-': lambda x,y: x-y,
     '*': lambda x,y: x*y,
     '/': lambda x,y: x/y,
-    '^': lambda x,y: x^y
+    '^': lambda x,y: x^y,
+    '%': lambda x,y: x%y
 }
 
 relacionals = {
@@ -28,17 +31,9 @@ relacionals = {
     '>': lambda x,y: x>y
 }
 
-# Funcio per a convertir True / False a boolea
-def boolify(s):
-    if s == 'True':
-        return True
-    if s == 'False':
-        return False
-    raise ValueError
-
 # Funcio per a convertir les dades al tipus de dades que requereixi
 def autoconvert(s):
-    for fn in (boolify, int, float):
+    for fn in (int, float):
         try:
             return fn(s)
         except ValueError:
@@ -80,12 +75,27 @@ def exists_function(function):
     if function not in functions:
         raise Exception("Function " + function + " does not exist")  
 
+def exists_variable(var):
+    # control d'errors per comprovar si existeix una variable
+    l = []
+    for elem in parameters.values():
+        if elem: l = list(elem.keys())
+
+    if var not in memory and var not in global_memory and var not in l:
+        raise Exception("Variable " + var + " does not exist")
+
 class EvalVisitor(llullVisitor):
     def __init__(self, firstFunc, params):
         self.firstFunc = firstFunc
+        self.globalVar = False
         self.params = params
 
     def visitRoot(self, ctx):
+        for elem in list(ctx.assignment()):
+            self.globalVar = True
+            self.visit(elem)
+            self.globalVar = False
+
         for elem in list(ctx.function()):
             self.visit(elem)
 
@@ -108,6 +118,10 @@ class EvalVisitor(llullVisitor):
         val = self.visit(ctx.expr())    # valor variable
         memory[key] = val
 
+        # afegim a global memory en cas que sigui global
+        if self.globalVar == True:
+            global_memory[key] = val
+
     def visitFunction(self, ctx):
         id = ctx.function_stat().ID().getText()
         function_redefinition(id)
@@ -120,8 +134,7 @@ class EvalVisitor(llullVisitor):
             for elem in atrs:
                 parameters[id].update({elem.getText(): 0})
                 memory[elem.getText()] = 0
-        except:
-            pass
+        except: pass
 
     def visitFunction_stat(self, ctx):
         i = 0      # index per iterar sobre la llista
@@ -146,7 +159,7 @@ class EvalVisitor(llullVisitor):
 
         # borrem tot el que no sigui referent a la crida per a evitar vars. globals
         for key in list(memory):
-            if key not in parameters[id]:
+            if key not in parameters[id] and key not in global_memory:
                 memory.pop(key)
 
         self.visit(functions[ctx.ID().getText()])
@@ -157,11 +170,11 @@ class EvalVisitor(llullVisitor):
     
     def visitIf_stat(self, ctx):
         l = list(ctx.condition_block())   # agafa tots els condition_block que conté el context
-        evaluatedBlock = False;
+        evaluatedBlock = False
 
         # cada 'statement' del if & else if
         for elem in l:
-            if bool(self.visit(elem.expr())):
+            if self.visit(elem.expr()) == 1:
                 evaluatedBlock = True
                 self.visit(elem.stat_block())
                 break
@@ -170,6 +183,14 @@ class EvalVisitor(llullVisitor):
             self.visit(ctx.stat_block())
 
     def visitWhile_stat(self, ctx):
+        # mentre es compleixi, seguim en el loop
+        while bool(self.visit(ctx.expr())):
+            self.visit(ctx.stat_block())
+
+    def visitDo_while_stat(self, ctx):
+        # fem una primera iteració
+        self.visit(ctx.stat_block())
+
         # mentre es compleixi, seguim en el loop
         while bool(self.visit(ctx.expr())):
             self.visit(ctx.stat_block())
@@ -193,11 +214,11 @@ class EvalVisitor(llullVisitor):
 
         try: output = str(self.visit(l[0]))
         except: pass
-        
+
         # per imprimir separat per espais iterem sobre els elements de la llista
         # i els concatenem amb espais
         for i in range (1, len(l)):
-            output += ' ' + str(self.visit(l[i]))
+            output += ' ' + str(l[i].getText())
             
         print(output)
 
@@ -206,42 +227,60 @@ class EvalVisitor(llullVisitor):
 
     def visitGetter_stat(self, ctx):
         pos = self.visit(ctx.expr())
+
+        # control d'error
+        exists_variable(ctx.ID().getText()) 
+
         array = memory[ctx.ID().getText()]
+
         # control d'error
         index_out_of_bounds(pos, len(array))
         return array[pos]
 
     def visitSetter_stat(self, ctx):
         pos = self.visit(ctx.expr())
+
+        # control d'error
+        exists_variable(ctx.ID().getText()) 
+
         array = memory[ctx.ID().getText()]
+
         # control d'error
         index_out_of_bounds(pos, len(array))
         array[pos] = self.visit(ctx.atom())
 
     def visitExpr(self, ctx):
         l = list(ctx.getChildren())
-        if len(l) == 1:
+        if len(l) == 1:   # en cas que sigui un atom
             try: return self.visit(ctx.atom()) 
             except: return self.visit(ctx.getter_stat())
-        elif len(l) == 2:
+        elif len(l) == 2: # en cas que sigui un número negatiu
             return -self.visit(ctx.expr())
         else:
-            parameters_out_of_context(self.visit(l[0]), self.visit(l[2]))
-            if l[1].getText() in aritmetics:
-                # control d'error
-                if l[1].getText() == "DIV": division_by_zero(self.visit(l[2]))
-                return aritmetics[l[1].getText()] (self.visit(l[0]), self.visit(l[2]))
-            else: return relacionals[l[1].getText()] (self.visit(l[0]), self.visit(l[2]))
+            # parèntesis
+            if l[0].getText() == '(' and l[2].getText() == ')':
+                self.visit(l[1])
+            # operacions
+            else:
+                parameters_out_of_context(self.visit(l[0]), self.visit(l[2]))
+                if l[1].getText() in aritmetics:
+                    # control d'error
+                    if l[1].getText() == "DIV": division_by_zero(self.visit(l[2]))
+                    return aritmetics[l[1].getText()] (self.visit(l[0]), self.visit(l[2]))
+                else:  
+                    if relacionals[l[1].getText()] (self.visit(l[0]), self.visit(l[2])): return 1
+                    else: return 0
 
     def visitAtom(self, ctx):
         l = list(ctx.getChildren())
         if len(l) == 3:
             return self.visit(ctx.expr())
         else:
+            # num
             if llullParser.symbolicNames[l[0].getSymbol().type] == 'NUM':
                 return int(l[0].getText())
-            elif llullParser.symbolicNames[l[0].getSymbol().type] == ('TRUE' or 'FALSE'):
-                return bool(l[0].getText())
+            # string
             elif llullParser.symbolicNames[l[0].getSymbol().type] == 'STRING':
                 return l[0].getText().replace('"', '')
-            else: return memory[l[0].getText()];
+            # variable
+            else: return memory[l[0].getText()]

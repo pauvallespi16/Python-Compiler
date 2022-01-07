@@ -1,0 +1,12 @@
+void main() {
+    a = 2
+    b = 3
+    c = a + b
+    if (c > 10) {
+        write("Sum is greater than 10")
+    } else if (c < 10) {
+        write("Sum is smaller than 10")
+    } else {
+        write("Sum is 10")
+    }
+}

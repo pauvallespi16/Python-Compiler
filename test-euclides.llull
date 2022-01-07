@@ -1,0 +1,19 @@
+void main() {
+    # llegeix dos enters i  n'escriu el seu maxim comu divisor
+    write("Escriu dos nombres")
+    read(a)
+    read(b)
+    write("El seu MCD es")
+    euclides(a, b)
+}
+
+void euclides(a, b) {
+    while (a <> b) {
+        if (a > b) {
+            a = a - b
+        } else {
+            b = b - a
+        }
+    }
+    write(a)
+}

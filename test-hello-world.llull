@@ -1,0 +1,5 @@
+# Hello World en Llull
+
+void main() {
+    write("El Primer dia: Déu creà la llum")
+}

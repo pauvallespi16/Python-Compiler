@@ -1,6 +1,6 @@
 grammar llull;
 
-root: function* EOF ;
+root: (assignment* function+ assignment*)* EOF ;
 
 block: stat* ;
 
@@ -10,6 +10,7 @@ stat: assignment
     | setter_stat
     | if_stat
     | while_stat
+    | do_while_stat
     | for_stat
     | function_stat
     | read
@@ -29,6 +30,8 @@ if_stat: IF condition_block (ELSE IF condition_block)* (ELSE stat_block)?;
 condition_block: expr stat_block;
 
 stat_block: BRACEL block BRACER;
+
+do_while_stat: DO stat_block WHILE expr;
 
 while_stat: WHILE expr stat_block;
 
@@ -54,7 +57,6 @@ expr: getter_stat
 
 atom: PARL expr PARR  // parèntesis
     | NUM             // número
-    | (TRUE | FALSE)  // booleà
     | STRING          // string
     | ID              // variables
     ;
@@ -89,6 +91,7 @@ READ    : 'read';
 WRITE   : 'write';
 IF      : 'if';
 WHILE   : 'while';
+DO      : 'do';
 FOR     : 'for';
 ELSE    : 'else';
 VOID    : 'void';
@@ -101,8 +104,6 @@ COMMA   : ',';
 SCOL    : ';';
 ASSIG   : '=' ;
 ZERO    : '0' ;
-TRUE    : 'true';
-FALSE   : 'false';
 STRING  : '"' (~["\r\n] | '""')* '"';
 
 // Variables

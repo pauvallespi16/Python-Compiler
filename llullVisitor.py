@@ -59,6 +59,11 @@ class llullVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by llullParser#do_while_stat.
+    def visitDo_while_stat(self, ctx:llullParser.Do_while_statContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by llullParser#while_stat.
     def visitWhile_stat(self, ctx:llullParser.While_statContext):
         return self.visitChildren(ctx)

@@ -3,7 +3,6 @@ from antlr4 import *
 from llullLexer import llullLexer
 from llullParser import llullParser
 from EvalVisitor import EvalVisitor
-from TreeVisitor import TreeVisitor
 
 def main(argv):    
     file = open(argv[1])
