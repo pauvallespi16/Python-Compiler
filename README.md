@@ -4,13 +4,35 @@ The language instructions are:
  - assignment with =
  - reading with read()
  - write with write()
- - the conditional with if and maybe else
+ - the conditional with if, else if and maybe else
  - iteration with while
+ - iteration with do while
  - iteration with for
  - the invocation of a procedure
  - instructions for accessing tables (arrays)
 
+The available data types are:
+ - integers
+ - booleans (represented as 0 and 1)
+ - arrays
+
+Local and global variables are implemented.
+
+The arithmetic operators are the usual ones (+, -, *, /, %) and with the same priority as in C. Obviously, parentheses can be used. Relational operators (==, <>, <,>, <=,> =) return zero for false and one for true.
+
+It also contains a *pretty-printer* which makes the code more visible and appealing to the user.
+
 # Instructions
-To use it, we must invoke Python passing it as the first parameter the file llull.py and as the second parameter the text file with the extension .llull from which we want the code to read. Optionally, we can enter a function name (followed by its parameters if it has one). In this way, we will start the execution with the function entered. If we do not introduce any function, it will start with the function called main. In case there is no main and no function has been passed, the program will return an exception. Also, if a function has been entered that does not exist, the program will return an exception.
-For example:
-<pre>python3 llull.py programa.llull</pre>
+First of all you need to install the requirements by using this command:
+<pre>python -m pip install -r requirements.txt </pre>
+
+The interpreter is invoked with the command python3 llull.py by passing it as a parameter the name of the file containing the source code (the extension of the files for programs in Llull is .llull). For example:
+<pre>python3 llull.py test-file.llull</pre>
+
+You can also call a function of a program directly, by passing the name of the function as a parameter and the values of the parameters of the function, like this:
+<pre>python3 llull.py test-file.llull hanoi 1 2 3 4</pre>
+
+The pretty-printer (also called a beautifier because it looks like a beautifier) is invoked with the python3 beat.py command by passing the name of the file containing the source code to beatify as the first parameter. For example:
+<pre>python3 beat.py test-file.llull</pre>
+
+
