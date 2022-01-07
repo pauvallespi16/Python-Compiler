@@ -35,6 +35,6 @@ You can also call a function of a program directly, by passing the name of the f
 The pretty-printer (also called a beautifier because it looks like a beautifier) is invoked with the python3 beat.py command by passing the name of the file containing the source code to beatify as the first parameter. For example:
 <pre>python3 beat.py test-file.llull</pre>
 
-### Author
+### Author
 Pau Vallespí Monclús
 
