@@ -218,7 +218,7 @@ class EvalVisitor(llullVisitor):
         # per imprimir separat per espais iterem sobre els elements de la llista
         # i els concatenem amb espais
         for i in range (1, len(l)):
-            output += ' ' + str(l[i].getText())
+            output += ' ' + str(self.visit(l[i]))
             
         print(output)
 
@@ -255,7 +255,7 @@ class EvalVisitor(llullVisitor):
             try: return self.visit(ctx.atom()) 
             except: return self.visit(ctx.getter_stat())
         elif len(l) == 2: # en cas que sigui un número negatiu
-            return -self.visit(ctx.expr())
+            return -self.visit(l[1])
         else:
             # parèntesis
             if l[0].getText() == '(' and l[2].getText() == ')':
